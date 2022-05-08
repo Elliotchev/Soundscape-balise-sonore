@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+      integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+      integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+      crossorigin=""
+    ></script>
+    <title>Eliot Phase 3</title>
+    <style>
+      body {
+        height: 100vh;
+        width: 100vw;
+        max-width: 100%;
+        margin: 0px;
+      }
+
+      .btn {
+        position: absolute;
+        right: 25px;
+        z-index: 100;
+        background-color: white;
+        border-radius: 500px;
+        width: 70px;
+        height: 70px;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        font-weight: 700;
+      }
+
+      #map {
+        height: 100%;
+        width: 100%;
+        z-index: 1;
+      }
+
+      #add-btn {
+        bottom: 30%;
+      }
+
+      #play-btn {
+        bottom: calc(30% - 100px);
+      }
+
+      #stop-btn {
+        bottom: calc(30% - 200px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="btn" id="add-btn" onclick="placePin()">Ajouter</div>
+    <div class="btn" id="play-btn" onclick="playAll()">Play</div>
+    <div class="btn" id="stop-btn" onclick="stopAll()">Stop</div>
+    <div id="map"></div>
+    <script>
+      // https://openweathermap.org/current
+      const API_KEY = "35d9c1beac6f715ce3ecfd647117c0bf";
+      const MAPBOX_KEY ="pk.eyJ1IjoiZWxsaW90Y2hldmFsaWVyIiwiYSI6ImNrNjFvZGNjeDA1MWMzbG1tN3lqbGFkdDUifQ.EpGFFBsY1YzybmJF3vXG5w";
+
+      let points = [];
+      let audios = [];
+
+      let map = L.map("map").setView([0, 0], 1);
+
+      L.tileLayer(
+        `https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${MAPBOX_KEY}`,
+        {
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+          maxZoom: 18,
+          id: "mapbox/streets-v11",
+          tileSize: 512,
+          zoomOffset: -1,
+          accessToken: "your.mapbox.access.token",
+        }
+      ).addTo(map);
+
+      var options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      };
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          var crd = pos.coords;
+
+          console.log("Your current position is:");
+          console.log(`Latitude : ${crd.latitude}`);
+          console.log(`Longitude: ${crd.longitude}`);
+          console.log(`More or less ${crd.accuracy} meters.`);
+
+          map.setView([crd.latitude, crd.longitude], 15);
+
+          // points.push(
+          //   L.marker([crd.latitude, crd.longitude])
+          //     .addTo(map)
+          //     .bindPopup("<audio controls/>")
+          //     .openPopup()
+          // );
+
+          // map.on("click", (e) => {
+          //   points.push(
+          //     L.marker([e.latlng.lat, e.latlng.lng])
+          //       .addTo(map)
+          //       .bindPopup("<audio controls/>")
+          //       .openPopup()
+          //   );
+          // });
+
+          const weatherData = {
+            coord: {
+              lon: -1.5665,
+              lat: 47.2042,
+            },
+            weather: [
+              {
+                id: 800,
+                main: "Clear",
+                description: "clear sky",
+                icon: "01d",
+              },
+            ],
+            base: "stations",
+            main: {
+              temp: 291.41,
+              feels_like: 290.68,
+              temp_min: 290.92,
+              temp_max: 291.64,
+              pressure: 1016,
+              humidity: 53,
+            },
+            visibility: 10000,
+            wind: {
+              speed: 5.14,
+              deg: 40,
+            },
+            clouds: {
+              all: 0,
+            },
+            dt: 1651505824,
+            sys: {
+              type: 1,
+              id: 6574,
+              country: "FR",
+              sunrise: 1651466928,
+              sunset: 1651519054,
+            },
+            timezone: 7200,
+            id: 6454153,
+            name: "Rezé",
+            cod: 200,
+          };
+
+          // fetch(
+          //   `https://api.openweathermap.org/data/2.5/weather?lat=${crd.latitude}&lon=${crd.longitude}&appid=${API_KEY}`
+          // )
+          //   .then((res) => res.json())
+          //   .then((data) => {
+          //     //faire des choses avec la data ici
+          //     console.dir(data);
+
+          //     //inserer les manipulations sur la map ici
+          //   });
+        },
+        (err) => {
+          console.warn(`ERROR(${err.code}): ${err.message}`);
+        },
+        options
+      );
+
+      function placePin() {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            var crd = pos.coords;
+
+            console.log("Your current position is:");
+            console.log(`Latitude : ${crd.latitude}`);
+            console.log(`Longitude: ${crd.longitude}`);
+            console.log(`More or less ${crd.accuracy} meters.`);
+
+            fetch(
+              `https://api.openweathermap.org/data/2.5/weather?lat=${crd.latitude}&lon=${crd.longitude}&appid=${API_KEY}`
+            )
+              .then((res) => res.json())
+              .then((data) => {
+                console.dir(data);
+
+                //en fonction de la meteo
+                //mettre le fichier sons dans une variable
+                let audioFile = "";
+
+                if(data.main.temp > 300){ //c'est probablement en Kelvin
+                  audioFile = "/assets/sounds/econdition1.mp3"
+                }else if(data.clouds.all > 50){
+                  audioFile = "/assets/sounds/econdition2.mp3"
+                }
+
+                points.push(
+                  L.marker([crd.latitude, crd.longitude])
+                    .addTo(map)
+                    .bindPopup(`<audio src="${audioFile}" controls/>`) // <-- inserer le fichier sons dans la src
+                    .openPopup()
+                );
+
+                let a = document.createElement("audio");
+                a.src = audioFile;
+                audios.push(a);
+              });
+          },
+          (err) => {
+            console.warn(`ERROR(${err.code}): ${err.message}`);
+          },
+          options
+        );
+      }
+
+      function playAll() {
+        if (audios.length == 0) {
+          return;
+        }
+
+        playNext(0);
+
+        function playNext(index) {
+          if (index >= audios.length) {
+            return;
+          }
+
+          audios[index].play();
+          audios[index].onended = () => {
+            playNext(index + 1);
+          };
+        }
+      }
+
+      function stopAll() {
+        audios.forEach((audio) => {
+          audio.pause();
+          audio.currentTime = 0;
+        });
+      }
+    </script>
+  </body>
+</html>
