@@ -202,10 +202,16 @@
                 //mettre le fichier sons dans une variable
                 let audioFile = "";
 
-                if(data.main.temp > 300){ //c'est probablement en Kelvin
+                if(data.main.temp > 100){ //c'est probablement en Kelvin
                   audioFile = "/assets/sounds/econdition1.mp3"
                 }else if(data.clouds.all > 50){
                   audioFile = "/assets/sounds/econdition2.mp3"
+                }else if(data.main.humidity <= 50){
+                  audioFile = "/assets/sounds/econdition3.mp3"
+                }else if(data.main.temp_min >= 50){
+                  audioFile = "/assets/sounds/econdition4.mp3"
+                }else if(data.main.temp_max >= 50){
+                  audioFile = "/assets/sounds/econdition5.mp3"
                 }
 
                 points.push(
