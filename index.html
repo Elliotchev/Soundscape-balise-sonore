@@ -212,6 +212,8 @@
                   audioFile = "/assets/sounds/econdition4.mp3"
                 }else if(data.main.temp_max >= 50){
                   audioFile = "/assets/sounds/econdition5.mp3"
+                }else if(data.main.pressure > 0){
+                  audioFile = "/assets/sounds/econdition6.mp3"
                 }
 
                 points.push(
